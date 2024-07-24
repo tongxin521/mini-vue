@@ -1,4 +1,4 @@
-let activeEffect;
+export let activeEffect;
 export function effect(fn) {
     const _effect = new ReactiveEffect(fn, () => {
         _effect.run();

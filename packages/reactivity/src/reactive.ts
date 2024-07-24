@@ -1,27 +1,15 @@
 import { isObject } from "@vue/shared";
+import { ReactiveFlags, mutableHandlers } from "./baseHandlers";
 
 const reactiveMap = new WeakMap();
 
-enum ReactiveFlags {
-    IS_REACTIVE = "__v_isReactive",
-}
+
 
 export function reactive(target) {
     return createReactiveObject(target);
 }
 
-const mutableHandlers: ProxyHandler<any> = {
-    get(target, key, receiver) {
-        if (key === ReactiveFlags.IS_REACTIVE) {
-            return true;
-        }
-        return Reflect.get(target, key, receiver);
-    },
 
-    set(target, key, value, receiver) {
-        return Reflect.set(target, key, value, receiver);
-    },
-}
 
 function createReactiveObject(target) {
     if (!isObject(target)) {
