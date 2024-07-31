@@ -6,19 +6,25 @@
     <title>Document</title>
 </head>
 <body>
+    <div id="app"></div>
     <script type="module">
-        import {reactive, effect} from './reactivity.js'
+        // import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed} from '/node_modules/vue/dist/vue.esm-browser.js'
+        import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed} from './reactivity.js'
+        
         const state = reactive({
             name: 'ltx',
-            age: 26,
+        });
+        
+        const stateCom = computed(() => {
+            return state.name + '123'
         })
 
         effect(() => {
-            return `姓名： ${state.name}， 年龄： ${state.age}`
+            console.log('effect')
+            app.innerHTML = stateCom.value + '****'
         })
-
         setTimeout(() => {
-            state.age ++;
+            state.name = 'ltx'
         }, 1000)
     </script>
 </body>

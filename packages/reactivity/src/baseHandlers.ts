@@ -1,8 +1,9 @@
-import { track } from "./reactiveEffect";
+import { isObject } from "@vue/shared";
+import { track, trigger } from "./reactiveEffect";
+import { reactive } from "./reactive";
+import { ReactiveFlags } from "./constants";
 
-export enum ReactiveFlags {
-    IS_REACTIVE = "__v_isReactive",
-}
+
 
 export const mutableHandlers: ProxyHandler<any> = {
     get(target, key, receiver) {
@@ -10,10 +11,19 @@ export const mutableHandlers: ProxyHandler<any> = {
             return true;
         }
         track(target, key);
-        return Reflect.get(target, key, receiver);
+        const res = Reflect.get(target, key, receiver);
+        if (isObject(res)) {
+            return reactive(res);
+        }
+        return res
     },
 
     set(target, key, value, receiver) {
-        return Reflect.set(target, key, value, receiver);
+        const oldValue = target[key];
+        const result = Reflect.set(target, key, value, receiver);
+        if (oldValue !== value) {
+            trigger(target, key, value, oldValue)
+        }
+        return result;
     },
 }
