@@ -181,6 +181,9 @@ function createReactiveObject(target) {
 function toReactive(value) {
   return isObject(value) ? reactive(value) : value;
 }
+function isReactive(value) {
+  return !!(value && value["__v_isReactive" /* IS_REACTIVE */]);
+}
 
 // packages/reactivity/src/ref.ts
 function ref(value) {
@@ -254,6 +257,9 @@ function proxyRefs(object) {
     }
   });
 }
+function isRef(value) {
+  return value.__v_isRef;
+}
 
 // packages/reactivity/src/computed.ts
 var ComputedRefImpl = class {
@@ -290,11 +296,66 @@ function computed(getterOrOptions) {
   }
   return new ComputedRefImpl(getter, setter);
 }
+
+// packages/reactivity/src/apiWatch.ts
+function watch(source, cb, options = {}) {
+  return doWatch(source, cb, options);
+}
+function watchEffect(effect2, options = {}) {
+  return doWatch(effect2, void 0, options);
+}
+function doWatch(source, cb, { deep, immediate }) {
+  const reactiveGetter = () => traverse(source, deep === false ? 1 : void 0);
+  let getter;
+  let oldValue;
+  if (isReactive(source)) {
+    getter = reactiveGetter;
+  } else if (isRef(source)) {
+    getter = () => source.value;
+  } else if (isFunction(source)) {
+    getter = source;
+  }
+  const job = () => {
+    if (cb) {
+      const newValue = effect2.run();
+      cb(newValue, oldValue);
+      oldValue = newValue;
+    } else {
+      effect2.run();
+    }
+  };
+  const effect2 = new ReactiveEffect(getter, job);
+  if (cb) {
+    if (immediate) {
+      job();
+    } else {
+      oldValue = effect2.run();
+    }
+  } else {
+    effect2.run();
+  }
+}
+function traverse(source, depth = Infinity, seen = /* @__PURE__ */ new Set()) {
+  if (!isObject(source) || depth <= 0) {
+    return source;
+  }
+  if (seen.has(source)) {
+    return source;
+  }
+  seen.add(source);
+  depth--;
+  for (const key in source) {
+    traverse(source[key], depth, seen);
+  }
+  return source;
+}
 export {
   ReactiveEffect,
   activeEffect,
   computed,
   effect,
+  isReactive,
+  isRef,
   proxyRefs,
   reactive,
   ref,
@@ -304,6 +365,8 @@ export {
   trackEffect,
   trackRefValue,
   triggerEffects,
-  triggerRefValue
+  triggerRefValue,
+  watch,
+  watchEffect
 };
 //# sourceMappingURL=reactivity.js.map

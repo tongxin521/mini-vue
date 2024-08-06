@@ -8,23 +8,41 @@
 <body>
     <div id="app"></div>
     <script type="module">
-        // import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed} from '/node_modules/vue/dist/vue.esm-browser.js'
-        import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed} from './reactivity.js'
+        // import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed, watch} from '/node_modules/vue/dist/vue.esm-browser.js'
+        import {reactive, effect, ref, toRef, toRefs, proxyRefs, computed, watch, watchEffect} from './reactivity.js'
         
         const state = reactive({
             name: 'ltx',
+            age: 18,
         });
         
-        const stateCom = computed(() => {
-            return state.name + '123'
+        const stateRef = ref({})
+        // const stateCom = computed(() => {
+        //     return state.name + '123'
+        // })
+
+        // effect(() => {
+        //     console.log('effect')
+        //     app.innerHTML = stateCom.value + '****'
+        // })
+        // watch(state, (nv, ov) => {
+        //     console.log('reactive', nv, ov)
+        // }, {deep: true, immediate: true})
+
+        // watch(stateRef, (nv, ov) => {
+        //     debugger
+        //     console.log('ref', nv, ov)
+        // }, {deep: true})
+
+        watchEffect(() => {
+            app.innerHTML = `姓名：${state.name}，年龄：${state.age}`;
         })
 
-        effect(() => {
-            console.log('effect')
-            app.innerHTML = stateCom.value + '****'
-        })
         setTimeout(() => {
-            state.name = 'ltx'
+            state.name = 'ltx1'
+            // state.address = 'ltx1'
+            // state.address.n.n = 123
+            // stateRef.name = 'ltx1'
         }, 1000)
     </script>
 </body>

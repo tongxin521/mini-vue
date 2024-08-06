@@ -90,3 +90,8 @@ export function proxyRefs(object) {
         },
     });
 }
+
+
+export function isRef(value) {
+    return value.__v_isRef;
+}
