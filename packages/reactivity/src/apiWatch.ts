@@ -22,10 +22,25 @@ function doWatch(source, cb, {deep, immediate}) {
     } else if (isFunction(source)) {
         getter = source;
     }
+
+    if (cb && deep) {
+        const baseGetter = getter;
+        getter = () => traverse(baseGetter(), deep === false ? 1 : undefined);
+    }
+    let clean
+    const  onCleanup = (fn) => {
+        clean = () => {
+            fn();
+            clean = void 0;
+        }
+    }
     const job = () => {
         if (cb) {
             const newValue = effect.run();
-            cb(newValue, oldValue);
+            if (clean) {
+                clean();
+            }
+            cb(newValue, oldValue, onCleanup);
             oldValue = newValue;
         }else {
             effect.run();
@@ -43,6 +58,12 @@ function doWatch(source, cb, {deep, immediate}) {
     } else {
         effect.run();
     }
+
+    const unWatch = () => {
+        effect.stop();
+    }
+
+    return unWatch;
     
 }
 

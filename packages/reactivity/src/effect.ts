@@ -73,6 +73,14 @@ export class ReactiveEffect {
         
     }
 
+    stop() {
+        if (this.active) {
+            preClearEffect(this);
+            postClearEffect(this);
+            this.active = false;
+        }
+    }
+
     get dirty() {
         return this._dirtyLevel >= DirtyLevels.Dirty;
     }

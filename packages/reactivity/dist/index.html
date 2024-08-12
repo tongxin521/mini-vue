@@ -15,8 +15,6 @@
             name: 'ltx',
             age: 18,
         });
-        
-        const stateRef = ref({})
         // const stateCom = computed(() => {
         //     return state.name + '123'
         // })
@@ -34,15 +32,56 @@
         //     console.log('ref', nv, ov)
         // }, {deep: true})
 
-        watchEffect(() => {
-            app.innerHTML = `姓名：${state.name}，年龄：${state.age}`;
-        })
+        // watch(state, () => {
+        //     app.innerHTML = `姓名：${state.name}，年龄：${state.age}`;
+        // }, {immediate: true})
+      //       let timer = 3000;
 
+      //       function getData(timer) {
+      //   return new Promise((resolve, reject) => {
+      //     setTimeout(() => {
+      //       resolve(timer);
+      //     }, timer);
+      //   });
+      // }
+
+      // const stateRef = ref({})
+      const unWatch =  watch(
+          state,
+        async (newValue, oldValue, onCleanup) => {
+            console.log('watch', newValue, oldValue)
+          // 第二次执行的 会将第一次的flag 变为false
+          let flag = true;
+          // for (let i = 0; i < queue.length; i++) {
+          //   queue[i]();
+          // }
+          // queue.push(() => (flag = false));
+          timer -= 1000;
+          onCleanup(() => {
+            flag = false;
+          });
+          let r = await getData(timer);
+
+          // 没调用一次请求，请求时间就减少1s
+
+          if (flag) {
+            // 根据flag的值去判断要不要渲染
+            app.innerHTML = r;
+          }
+        },
+        {
+          flush: "sync",
+          deep: true,
+        }
+      );
+      unWatch();
         setTimeout(() => {
             state.name = 'ltx1'
-            // state.address = 'ltx1'
-            // state.address.n.n = 123
-            // stateRef.name = 'ltx1'
+            state.name = 'ltx2'
+            // // state.address = 'ltx1'
+            // // state.address.n.n = 123
+            // stateRef.value.name = 'ltx1'
+            // stateRef.value.name = 123
         }, 1000)
     </script>
 </body>

@@ -60,6 +60,13 @@ var ReactiveEffect = class {
       activeEffect = lastEffect;
     }
   }
+  stop() {
+    if (this.active) {
+      preClearEffect(this);
+      postClearEffect(this);
+      this.active = false;
+    }
+  }
   get dirty() {
     return this._dirtyLevel >= 4 /* Dirty */;
   }
@@ -209,7 +216,7 @@ var RefImpl = class {
 };
 function trackRefValue(ref2) {
   if (activeEffect) {
-    trackEffect(activeEffect, ref2.dep = createDeps(() => ref2.dep = void 0, "undefined"));
+    trackEffect(activeEffect, ref2.dep = ref2.dep || createDeps(() => ref2.dep = void 0, "undefined"));
   }
 }
 function triggerRefValue(ref2) {
@@ -315,10 +322,24 @@ function doWatch(source, cb, { deep, immediate }) {
   } else if (isFunction(source)) {
     getter = source;
   }
+  if (cb && deep) {
+    const baseGetter = getter;
+    getter = () => traverse(baseGetter(), deep === false ? 1 : void 0);
+  }
+  let clean;
+  const onCleanup = (fn) => {
+    clean = () => {
+      fn();
+      clean = void 0;
+    };
+  };
   const job = () => {
     if (cb) {
       const newValue = effect2.run();
-      cb(newValue, oldValue);
+      if (clean) {
+        clean();
+      }
+      cb(newValue, oldValue, onCleanup);
       oldValue = newValue;
     } else {
       effect2.run();
@@ -334,6 +355,10 @@ function doWatch(source, cb, { deep, immediate }) {
   } else {
     effect2.run();
   }
+  const unWatch = () => {
+    effect2.stop();
+  };
+  return unWatch;
 }
 function traverse(source, depth = Infinity, seen = /* @__PURE__ */ new Set()) {
   if (!isObject(source) || depth <= 0) {
