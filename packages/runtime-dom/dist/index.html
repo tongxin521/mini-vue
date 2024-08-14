@@ -6,12 +6,12 @@
     <title>Document</title>
 </head>
 <body>
+    <div #app></div>
     <script type="module">
-        import {h, createRenderer} from '/node_modules/vue/dist/vue.runtime.esm-browser.js'
-        import {rendererOptions} from './runtime-dom.js';
+        import {h} from '/node_modules/vue/dist/vue.runtime.esm-browser.js'
+        import {render} from './runtime-dom.js';
         const vnode = h('div', {style: {color: 'red'}}, 'hello')
-        const render = createRenderer(rendererOptions).render;
-        render(vnode, document.body)
+        render(vnode, app)
     </script>
 </body>
 </html>

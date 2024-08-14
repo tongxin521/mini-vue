@@ -487,13 +487,68 @@ function traverse(source, depth = Infinity, seen = /* @__PURE__ */ new Set()) {
   return source;
 }
 
-// packages/runtime-core/src/index.ts
-function createRenderer(renderOptions) {
+// packages/runtime-core/src/renderer.ts
+function createRenderer(options) {
+  return baseCreateRenderer(options);
+}
+function baseCreateRenderer(options) {
+  const {
+    insert: hostInsert,
+    remove: hostRemove,
+    patchProp: hostPatchProp,
+    createElement: hostCreateElement,
+    createText: hostCreateText,
+    createComment: hostCreateComment,
+    setText: hostSetText,
+    setElementText: hostSetElementText,
+    parentNode: hostParentNode,
+    nextSibling: hostNextSibling
+  } = options;
+  const patch = (n1, n2, container) => {
+    if (n1 == n2) {
+      return;
+    }
+    const { type, ref: ref2, shapeFlag } = n2;
+    if (shapeFlag & 1 /* ELEMENT */) {
+      processElement(n1, n2, container);
+    }
+  };
+  const processElement = (n1, n2, container) => {
+    if (n1 == null) {
+      mountElement(n2, container);
+    }
+  };
+  const mountElement = (vnode, container) => {
+    const { type, props, shapeFlag } = vnode;
+    const el = vnode.el = hostCreateElement(type);
+    if (shapeFlag & 8 /* TEXT_CHILDREN */) {
+      hostSetElementText(el, vnode.children);
+    }
+    if (shapeFlag & 16 /* ARRAY_CHILDREN */) {
+      mountChildren(vnode, el);
+    }
+    if (props) {
+      for (const key in props) {
+        hostPatchProp(el, key, null, props[key]);
+      }
+    }
+  };
+  const mountChildren = (vnode, container) => {
+    for (let i = 0; i < vnode.children.length; i++) {
+      const child = vnode.children[i];
+      patch(null, child, container);
+    }
+  };
   const render2 = (vnode, container) => {
+    if (vnode == null) {
+      if (container._vnode != null) {
+      }
+    } else {
+      patch(container._vnode || null, vnode, container);
+    }
+    container._vnode = vnode;
   };
-  return {
-    render: render2
-  };
+  return { render: render2 };
 }
 
 // packages/runtime-dom/src/index.ts
